@@ -1,0 +1,19 @@
+--- atlas_start.py.org	2022-11-06 17:54:12.208000000 +0900
++++ atlas_start.py	2022-11-06 17:55:48.426928900 +0900
+@@ -17,6 +17,7 @@
+ # limitations under the License.
+ import os
+ import sys
++import time
+ import traceback
+ 
+ import atlas_config as mc
+@@ -157,6 +158,8 @@
+         start_atlas_server(atlas_classpath, atlas_pid_file, jvm_logdir, jvm_opts_list, web_app_path)
+         mc.wait_for_startup(confdir, 300)
+         print("Apache Atlas Server started!!!\n")
++        while os.path.exists(atlas_pid_file):
++            time.sleep(1)
+     else:
+         process = mc.java("org.apache.atlas.web.setup.AtlasSetup", [], atlas_classpath, jvm_opts_list, jvm_logdir)
+         return process.wait()
