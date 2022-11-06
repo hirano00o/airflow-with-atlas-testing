@@ -1,0 +1,30 @@
+--- atlas_config.py.org	2022-11-06 22:54:04.544565000 +0900
++++ atlas_config.py	2022-11-06 22:57:47.073087800 +0900
+@@ -584,14 +584,14 @@
+ 
+     if zk_url is None:
+         if port is None:
+-            cmd = [os.path.join(dir, solrScript), action]
++            cmd = [os.path.join(dir, solrScript), action, '-force']
+         else:
+-            cmd = [os.path.join(dir, solrScript), action, '-p', str(port)]
++            cmd = [os.path.join(dir, solrScript), action, '-force', '-p', str(port)]
+     else:
+         if port is None:
+-            cmd = [os.path.join(dir, solrScript), action, '-z', zk_url]
++            cmd = [os.path.join(dir, solrScript), action, '-force', '-z', zk_url]
+         else:
+-            cmd = [os.path.join(dir, solrScript), action, '-z', zk_url, '-p', port]
++            cmd = [os.path.join(dir, solrScript), action, '-force', '-z', zk_url, '-p', port]
+ 
+     if homedir is not None:
+         if not os.path.exists(homedir) :
+@@ -614,7 +614,7 @@
+     if IS_WINDOWS:
+         solrScript = "solr.cmd"
+ 
+-    cmd = [os.path.join(dir, solrScript), 'create', '-c', index, '-d', confdir,  '-shards',  solrShards(),  '-replicationFactor', solrReplicationFactor()]
++    cmd = [os.path.join(dir, solrScript), 'create', '-c', index, '-d', confdir,  '-shards',  solrShards(),  '-replicationFactor', solrReplicationFactor(), '-force']
+ 
+     return runProcess(cmd, logdir, False, wait)
+ 

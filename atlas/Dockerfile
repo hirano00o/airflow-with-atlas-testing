@@ -14,6 +14,7 @@ RUN apt-get update \
       unzip
 
 ENV MAVEN_OPTS="-Xms2g -Xmx2g"
+ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 WORKDIR /tmp
 RUN wget https://dlcdn.apache.org/atlas/${VERSION}/apache-atlas-${VERSION}-sources.tar.gz \
     && tar -xzf apache-atlas-${VERSION}-sources.tar.gz \
@@ -24,15 +25,17 @@ RUN mv /tmp/apache-atlas-sources-${VERSION}/distro/target/apache-atlas-${VERSION
 RUN tar -xzf /tmp/apache-atlas-server.tar.gz -C /opt \
     && rm -Rf /tmp/apache-atlas-server.tar.gz
 
-COPY atlas_start.py.patch /opt/apache-atlas-${VERSION}/bin/
+COPY atlas_start.py.patch atlas_config.py.patch /opt/apache-atlas-${VERSION}/bin/
 
 RUN cd /opt/apache-atlas-${VERSION}/bin \
-    && patch -b -f < atlas_start.py.patch
+    && patch -b -f < atlas_start.py.patch \
+    && patch -b -f < atlas_config.py.patch
 
 FROM ubuntu:jammy AS deploy
 ARG VERSION
 COPY --from=build-atlas /opt/apache-atlas-${VERSION} /opt/apache-atlas-${VERSION}
 
+ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 ENV MANAGE_LOCAL_HBASE=true
 ENV MANAGE_LOCAL_SOLR=true
 ENV DEBIAN_FRONTEND=noninteractive
@@ -46,6 +49,10 @@ RUN apt-get update \
       python3.9 \
     && ln -s /usr/bin/python3 /usr/bin/python
 
-RUN mv /opt/apache-atlas-${VERSION} /opt/apache-atlas
+COPY conf/hbase-site.xml.template /opt/apache-atlas-${VERSION}/conf/hbase/hbase-site.xml.template
+COPY conf/atlas-env.sh /opt/apache-atlas-${VERSION}/conf/atlas-env.sh
+
+RUN mv /opt/apache-atlas-${VERSION} /opt/apache-atlas \
+    && /opt/apache-atlas/bin/atlas_start.py -setup || true
 
 CMD [ "/opt/apache-atlas/bin/atlas_start.py" ]
